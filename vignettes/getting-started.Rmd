@@ -1,0 +1,113 @@
+---
+title: "Getting Started with EmbryoRadar"
+output:
+  rmarkdown::html_vignette: default
+  github_document: default
+vignette: >
+  %\VignetteIndexEntry{Getting Started with EmbryoRadar}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r load_packages, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.5,
+  message = FALSE,
+  warning = FALSE
+)
+suppressMessages({
+  library(EmbryoRadar)
+  library(tidyverse)
+  library(Biobase)
+  library(data.table)
+})
+set.seed(42)
+```
+
+Getting Started with EmbryoRadar
+
+This vignette demonstrates the main workflow for using the EmbryoRadar package:
+
+ - Loading a trained multiclass k-TSP model
+ - Predicting Pre-implantation embryo classes from bulk RNA-seq data
+ - Computing singscores from TPM matrices
+ - Visualising predictions
+
+```{r embryo_radar_score}
+# ================================
+# Full Example Workflow
+# ================================
+
+# ---- Load the dataset (ExpressionSet) ----
+# this is a Biobase::ExpressionSet object
+skcm <- readRDS(system.file("extdata/classifier2.0/GSE232692_exprset.rds",
+                            package = "EmbryoRadar"))
+
+skcm
+
+# Inspect expression and sample features
+Biobase::exprs(skcm)[1:3, 1:3]
+
+# ---- Run the classifier ----
+pred <- EmbryoRadar_pred(ExpressionSet = skcm,
+                         input_gene_annotations = "ensembl",
+                         threshold = "simulation_2.0",
+                         model = "trimmed",
+                         max_score = FALSE)
+head(pred$prediction)
+```
+
+
+```{r plot_embryo_radar_score}
+# ---- Check sample alignment ----
+all(pred$prediction$sample == Biobase::sampleNames(skcm))
+
+# ---- Visualize prediction results ----
+plot_df <- pred$prediction |>
+  tibble::rownames_to_column("Sample") |>
+  separate(Sample, into = c("Day", "Rep"), "_") |>
+  pivot_longer(
+    cols = c(Maternal, ZGA, Morula, EPI, TE, Adult, SC),
+    names_to = "class",
+    values_to = "probability"
+  ) |>
+  mutate(class = factor(class,
+                        levels = c("Maternal", "ZGA", "Morula",
+                                   "EPI", "TE", "Adult", "SC")))
+
+ggplot(plot_df, aes(x = Day, y = probability)) +
+  geom_boxplot(outlier.alpha = 0) +
+  geom_jitter(width = 0.1, height = 0, alpha = 0.6) +
+  labs(title = "EmbryoRadar class probabilities", x = NULL, y = "Probability") +
+  facet_wrap(~class) +
+  theme_bw()
+```
+
+The singscore
+
+```{r singscore}
+# ---- Compute singscores example ----
+tpm <- system.file("extdata/classifier2.0/GSE232692_TPM_AllSamples_ver2.csv.gz",
+                   package = "EmbryoRadar") |>
+  fread()
+gid <- gsub("^gene:", "", tpm$gene_id)
+tpm <- tpm[, -1:-2]
+te_ssc <- compute_TE_singscores(tpm = tpm, ensembl = gid)
+names(te_ssc)
+head(te_ssc$singscores[, 1:6, with = FALSE])
+te_ssc$singscores |>
+  separate(sampleID, into = c("Day", "Rep"), "_") |>
+  ggplot(aes(x = Day, y = TE_num_tcga)) +
+  geom_boxplot(outlier.alpha = 0) +
+  geom_jitter(width = 0.1, height = 0, alpha = 0.6) +
+  labs(title = "TE skcm singscore", x = NULL, y = "singscore") +
+  theme_bw()
+```
+
+```{r session_info}
+# ---- Reproducibility info ----
+sessionInfo()
+```

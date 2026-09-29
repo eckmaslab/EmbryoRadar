@@ -1,0 +1,26 @@
+# R
+.Renviron
+.Renviron.local
+.Rprofile
+.Rhistory
+.RData
+.Ruserdata
+.Rapp.history
+*.Rapp.history
+rsconnect/
+
+# RStudio
+.Rproj.user
+*.Rproj.user
+
+
+# macOS
+.DS_Store
+*.DS_Store
+inst/.DS_Store
+inst/extdata/.DS_Store
+inst/doc
+
+# vignettes
+inst/doc/
+Meta/

@@ -1,0 +1,46 @@
+Package: EmbryoRadar
+Type: Package
+Title: Pre-Implantation Embryo Classification and SingScore Analysis
+Version: 1.0.0
+Authors@R: c(
+    person(given = "Tongtong", family = "Wang", email = "tongtong.wang1210@gmail.com", role = c("aut", "cre")),
+    person(given = "Benjamín", family = "Hernández-Rodríguez", email = "Benjamin.HernandezRodriguez@petermac.org", role = c("aut", "ctb"))
+    )
+Description: Tools for running pre-implantation embryo classifier for bulk RNAseq and computing singscores for scRNAseq data.
+License: GPL-3 + file LICENSE
+Encoding: UTF-8
+Depends:
+    R (>= 3.5.0)
+Imports:
+    data.table,
+    ggplot2,
+    dplyr,
+    tidyr,
+    magrittr,
+    readxl,
+    multiclassPairs,
+    AUCell,
+    switchBox,
+    Biobase,
+    singscore,
+    DropletUtils,
+    Matrix,
+    SeuratObject,
+    SingleCellExperiment,
+    SummarizedExperiment,
+    celda,
+    methods,
+    pROC,
+    viridis
+Remotes:
+    bioc::singscore,
+    bioc::Biobase,
+    bioc::switchBox
+LazyData: true
+Suggests: 
+    knitr,
+    rmarkdown,
+    tidyverse,
+    tibble
+VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
